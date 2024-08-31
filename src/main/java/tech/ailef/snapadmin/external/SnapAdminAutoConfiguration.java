@@ -60,6 +60,25 @@ import tech.ailef.snapadmin.internal.InternalSnapAdminConfiguration;
 public class SnapAdminAutoConfiguration {
 	@Autowired
 	private SnapAdminProperties props;
+	
+	@Value("${internal.datasource.driver-class-name}")
+	private String driverClassName;
+
+	@Value("${internal.datasource.url}")
+	private String url;
+
+	@Value("${internal.datasource.username}")
+	private String username;
+
+	@Value("${internal.datasource.password}")
+	private String password;
+
+	@Value("${internal.datasource.hibernate-dialect}")
+	private String hibernateDialect;
+
+	@Value("${internal.datasource.hbm2ddl-auto}")
+	private String hbm2ddlAuto;
+
 
 	/**
 	 * Builds and returns the internal data source.
@@ -69,17 +88,13 @@ public class SnapAdminAutoConfiguration {
 	@Bean
 	DataSource internalDataSource() {
 		DataSourceBuilder<?> dataSourceBuilder = DataSourceBuilder.create();
-		dataSourceBuilder.driverClassName("org.h2.Driver");
-		if (props.isTestMode()) {
-			dataSourceBuilder.url("jdbc:h2:mem:test");
-		} else {
-			dataSourceBuilder.url("jdbc:h2:file:./snapadmin_internal");
-		}
-		
-		dataSourceBuilder.username("sa");
-		dataSourceBuilder.password("password");
+		dataSourceBuilder.driverClassName(driverClassName);
+		dataSourceBuilder.url(url);
+		dataSourceBuilder.username(username);
+		dataSourceBuilder.password(password);
 		return dataSourceBuilder.build();
 	}
+
 
 	@Bean
 	LocalContainerEntityManagerFactoryBean internalEntityManagerFactory() {
@@ -87,11 +102,15 @@ public class SnapAdminAutoConfiguration {
 		factoryBean.setDataSource(internalDataSource());
 		factoryBean.setPersistenceUnitName("internal");
 		factoryBean.setPackagesToScan("tech.ailef.snapadmin.internal.model");
-		factoryBean.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
+
+		HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+		factoryBean.setJpaVendorAdapter(vendorAdapter);
+
 		Properties properties = new Properties();
-		properties.setProperty("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
-		properties.setProperty("hibernate.hbm2ddl.auto", "update");
+		properties.setProperty("hibernate.dialect", hibernateDialect);
+		properties.setProperty("hibernate.hbm2ddl.auto", hbm2ddlAuto);
 		factoryBean.setJpaProperties(properties);
+
 		factoryBean.afterPropertiesSet();
 		return factoryBean;
 	}
