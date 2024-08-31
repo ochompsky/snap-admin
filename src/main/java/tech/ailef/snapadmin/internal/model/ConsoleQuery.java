@@ -34,7 +34,6 @@ public class ConsoleQuery {
 	@UuidGenerator
 	private String id;
 	
-	@Lob
 	private String sql;
 	
 	private String title;
